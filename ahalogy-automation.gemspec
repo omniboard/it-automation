@@ -4,6 +4,6 @@ Gem::Specification.new do |gem|
   gem.date        = '2015-03-23'
   gem.summary     = 'Scripts to handle IT automation.'
   gem.authors     = ['Zan Loy']
-  gem.files       = ['lib/ahalogy/install-helper.rb']
+  gem.files       = `git ls-files`.split("\n") - %w[.gitignore]
   gem.executables = ['a5y-configure']
 end

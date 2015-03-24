@@ -164,3 +164,11 @@ if not cleanup.empty?
     puts "(cleanup) #{cmd}"
   end
 end
+
+datadir = Gem.datadir('ahalogy-automation')
+puts "Gem.datadir = #{datadir}"
+if File.readable? File.join(datadir, 'vimrc')
+  puts "vimrc found."
+else
+  puts "vimrc NOT found."
+end

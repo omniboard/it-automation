@@ -1,3 +1,11 @@
+require 'fileutils'
+
+def get_datadir
+  datadir = Gem.datadir('ahalogy-automation')
+  datadir = File.join(File.dirname(__FILE__), '../../data/ahalogy-automation') if datadir== nil
+  return datadir
+end
+
 def run_cmd(cmd, msg)
   puts msg
   puts "(cmd) '#{cmd}'" #DEBUG
@@ -25,6 +33,17 @@ def install_cask(app)
     system 'brew', 'cask', 'install', app
     abort "FAILED." if $? != 0
   end
+end
+
+def install_file(file, destination)
+  file = File.join(get_datadir, file)
+  if not File.readable? file
+    puts "(file) Attempted to install #{file} but the file was not found."
+    return false
+  end
+  destination = File.expand_path(destination)
+  puts "(file) Copying #{file} to #{destination}..."
+  FileUtils.cp file, destination
 end
 
 def add_line_to_file(file, line, regex = nil)

@@ -1,3 +1,5 @@
+task :default => [:build]
+
 task :build do
   `gem build ./ahalogy-automation.gemspec`
 end

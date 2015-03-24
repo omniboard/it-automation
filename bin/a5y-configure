@@ -99,6 +99,7 @@ if options[:groups].include? 'default'
   install_cask 'google-chrome' # No further configuration required.
   install_cask 'google-drive' # Configuration will occur on first run of application.
   install_cask 'macvim'
+  install_file 'vimrc', '~/.vimrc'
   install_cask 'screenhero' # Configuration will occur on first run of application.
   install_cask 'textmate'
   install_cask 'zoomus' # Configuration will occur on first run of applicaiton.
@@ -163,12 +164,4 @@ if not cleanup.empty?
   cleanup.each do |cmd|
     puts "(cleanup) #{cmd}"
   end
-end
-
-datadir = Gem.datadir('ahalogy-automation')
-puts "Gem.datadir = #{datadir}"
-if File.readable? File.join(datadir, 'vimrc')
-  puts "vimrc found."
-else
-  puts "vimrc NOT found."
 end

@@ -20,40 +20,6 @@ OptionParser.new do |opts|
   opts.on("-d", "--debug", "Enable debug messaging.") { options[:verbose] = true }
 end.parse!
 
-# def run_cmd(cmd, msg)
-#   puts msg
-#   puts "(cmd) '#{cmd}'" #DEBUG
-#   results = system(cmd)
-#   abort "FAILED." if $? != 0
-# end
-#
-# def install_brew(app)
-#   %x[brew list #{app}]
-#   if $? == 0
-#     puts "(brew) #{app} already installed...skipped."
-#   else
-#     puts "(brew) install #{app}"
-#     system 'brew', 'install', app
-#     abort "FAILED." if $? != 0
-#   end
-# end
-#
-# def install_cask(app)
-#   %x[brew cask list #{app}]
-#   if $? == 0
-#     puts "(cask) #{app} already installed...skipped."
-#   else
-#     puts "(cask) install #{app}"
-#     system 'brew', 'cask', 'install', app
-#     abort "FAILED." if $? != 0
-#   end
-# end
-#
-# def add_line_to_file(file, line, regex = nil)
-#   regex = Regexp.escape(line) if regex == nil
-#   run_cmd "grep '#{regex}' #{file} --quiet || echo '#{line}' >> #{file}", "Updating #{file}..."
-# end
-
 cleanup = []
 
 if options[:groups].include? 'default'
@@ -103,15 +69,15 @@ if options[:groups].include? 'default'
   install_cask 'screenhero' # Configuration will occur on first run of application.
   install_cask 'textmate'
   install_cask 'zoomus' # Configuration will occur on first run of applicaiton.
-  
+
   # Run BackBlaze Installer
   cleanup << %q[run_cmd "open -a '/opt/homebrew-cask/Caskroom/backblaze/latest/Backblaze Installer.app'", "Installing BackBlaze."]
 end # options[:groups] = default
 
 if options[:groups].include? 'developer'
   puts "### Starting installation of developer apps... ###"
-  install_cask '1password' # Configuration will occur on first run of application.
-  install_cask 'alfred' # Configuration will occur on first run of application.
+  install_cask '1password'
+  install_cask 'alfred'
   install_cask 'anvil'
   install_brew 'python'
   install_brew 'python3'
@@ -120,6 +86,10 @@ if options[:groups].include? 'developer'
   run_cmd 'pip3 install cql &> /dev/null', 'Installing cql python3 module via pip3...'
   install_cask 'dash'
   install_brew 'node'
+  install_brew 'nvm'
+  mkdir '~/.nvm'
+  add_line_to_file '~/.zshrc', 'export NVM_DIR=~/.nvm'
+  add_line_to_file '~/.zshrc', 'source $(brew --prefix nvm)/nvm.sh'
   install_brew 'phantomjs'
   install_brew 'homebrew/versions/postgresql92'
   install_brew 'pow'

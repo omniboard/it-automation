@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
 require 'ahalogy/install-helper'
+require 'colorize'
+require 'github'
 require 'optparse'
 require 'pp'
 
@@ -29,6 +31,14 @@ if options[:groups].include? 'default'
     run_cmd "xcode-select --install", "Installing Xcode."
   else
     puts "Xcode is already installed...skipped."
+  end
+  system 'xcodebuild &> /dev/null'
+  if $? == 69
+    puts "You need to agree to the Xcode license before continuing...".colorize(:red)
+    system("sudo xcodebuild -license")
+    if $? != 0
+      fail "Xcode is not configured correctly."
+    end
   end
 
   # Let's setup our sshkey and github (we need this to pull the config repo)
@@ -64,7 +74,8 @@ if options[:groups].include? 'default'
   install_cask 'github' # Configuration will occur on first run of application.
   install_cask 'google-chrome' # No further configuration required.
   install_cask 'google-drive' # Configuration will occur on first run of application.
-  install_cask 'macvim'
+  #install_cask 'macvim'
+  install_brew 'macvim', '--override-system-vim --with-python3'
   install_file 'vimrc', '~/.vimrc'
   install_cask 'screenhero' # Configuration will occur on first run of application.
   install_cask 'textmate'
@@ -87,9 +98,6 @@ if options[:groups].include? 'developer'
   install_cask 'dash'
   install_brew 'node'
   install_brew 'nvm'
-  mkdir '~/.nvm'
-  add_line_to_file '~/.zshrc', 'export NVM_DIR=~/.nvm'
-  add_line_to_file '~/.zshrc', 'source $(brew --prefix nvm)/nvm.sh'
   install_brew 'phantomjs'
   install_brew 'homebrew/versions/postgresql92'
   install_brew 'pow'
@@ -98,6 +106,10 @@ if options[:groups].include? 'developer'
   install_brew 'ruby-build'
   install_cask 'slack'
   install_cask 'tower'
+  # Configure nvm
+  mkdir '~/.nvm'
+  add_line_to_file '~/.zshrc', 'export NVM_DIR=~/.nvm'
+  add_line_to_file '~/.zshrc', 'source $(brew --prefix nvm)/nvm.sh'
   # Configure pow
   if not File.directory? File.expand_path('~/Library/Application Support/Pow/Hosts')
     run_cmd 'mkdir -p ~/Library/Application\ Support/Pow/Hosts', 'Creating support directory for pow hosts...'
@@ -107,7 +119,7 @@ if options[:groups].include? 'developer'
   end
   run_cmd 'sudo pow --install-system', 'Configuring port 80 forwarding for pow...'
   run_cmd 'pow --install-local', 'Configuring launchd agent for pow...'
-  run_cmd 'sudo launchctl load -w /Library/LaunchDaemons/cx.pow.firewall.plis', 'Configuring pow launchd agent to start on boot...'
+  run_cmd 'sudo launchctl load -w /Library/LaunchDaemons/cx.pow.firewall.plist', 'Configuring pow launchd agent to start on boot...'
   run_cmd 'launchctl load -w ~/Library/LaunchAgents/cx.pow.powd.plist', 'Starting pow...'
   # Configure rbenv
   system("grep -q -F 'export RBENV_ROOT=/usr/local/var/rbenv' /etc/profile")

@@ -6,4 +6,7 @@ Gem::Specification.new do |gem|
   gem.authors     = ['Zan Loy']
   gem.files       = `git ls-files`.split("\n") - %w[.gitignore]
   gem.executables = ['a5y-configure']
+
+  gem.add_runtime_dependency 'colorize'
+  gem.add_runtime_dependency 'github'
 end

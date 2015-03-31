@@ -1,3 +1,5 @@
+require 'colorize'
+require 'digest'
 require 'fileutils'
 
 def get_datadir
@@ -8,18 +10,18 @@ end
 
 def run_cmd(cmd, msg)
   puts msg
-  puts "(cmd) '#{cmd}'" #DEBUG
-  results = system(cmd)
+  puts "(cmd) '#{cmd}'".colorize(:blue)
+  system cmd
   abort 'FAILED.' if $? != 0
 end
 
-def install_brew(app)
+def install_brew(app, opts = '')
   %x[brew list #{app}]
   if $? == 0
-    puts "(brew) #{app} already installed...skipped."
+    puts "(brew) #{app} already installed...skipped.".colorize(:green)
   else
-    puts "(brew) install #{app}"
-    system 'brew', 'install', app
+    puts "(brew) install #{app} #{opts}".colorize(:blue)
+    system 'brew', 'install', app, opts
     abort 'FAILED.' if $? != 0
   end
 end
@@ -27,9 +29,9 @@ end
 def uninstall_brew(app)
   %x[brew list #{app}]
   if $? != 0
-    puts "(brew) #{app} is not installed...skipped."
+    puts "(brew) #{app} is not installed...skipped.".colorize(:green)
   else
-    puts "(brew-uninstall) uninstall #{app}"
+    puts "(brew-uninstall) uninstall #{app}".colorize(:blue)
     system 'brew', 'uninstall', '--force', app
     abort 'FAILED.' if $? != 0
   end
@@ -38,9 +40,9 @@ end
 def install_cask(app)
   %x[brew cask list #{app}]
   if $? == 0
-    puts "(cask) #{app} already installed...skipped."
+    puts "(cask) #{app} already installed...skipped.".colorize(:green)
   else
-    puts "(cask) install #{app}"
+    puts "(cask) install #{app}".colorize(:blue)
     system 'brew', 'cask', 'install', app
     abort 'FAILED.' if $? != 0
   end
@@ -49,12 +51,21 @@ end
 def install_file(file, destination)
   file = File.join(get_datadir, file)
   if not File.readable? file
-    puts "(file) Attempted to install #{file} but the file was not found."
+    puts "(file) Attempted to install #{file} but the file was not found.".colorize(:red)
     return false
   end
   destination = File.expand_path(destination)
-  puts "(file) Copying #{file} to #{destination}..."
-  FileUtils.cp file, destination
+  filemd5 = Digest::MD5.file(file).hexdigest
+  destmd5 = ''
+  if File.readable? destination
+    destmd5 = Digest::MD5.file(destination).hexdigest
+  end
+  if filemd5 == destmd5
+    puts "(file) #{file} and #{destination} are the same file...skipped.".colorize(:green)
+  else
+    puts "(file) Copying #{file} to #{destination}...".colorize(:blue)
+    FileUtils.cp file, destination
+  end
 end
 
 def add_line_to_file(file, line, regex = nil)
@@ -66,12 +77,12 @@ def mkdir(dir)
   dir = File.expand_path dir
   if File.exists? dir
     if File.directory? dir
-      puts "(mkdir) The directory #{dir} already exists...skipped."
+      puts "(mkdir) The directory #{dir} already exists...skipped.".colorize(:green)
     else
-      fail "(mkdir) ERROR: Trying to create directory but file already exists at #{dir}"
+      fail "(mkdir) ERROR: Trying to create directory but file already exists at #{dir}".colorize(:red)
     end
   else
-    puts "(mkdir) Creating directory #{dir}..."
+    puts "(mkdir) Creating directory #{dir}...".colorize(:blue)
     FileUtils.mkdir dir
   end
 end

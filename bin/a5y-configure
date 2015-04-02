@@ -59,15 +59,16 @@ if options[:groups].include? 'default'
     puts "Homebrew already installed...skipped."
   else
     run_cmd 'ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"', "Installing homebrew."
+    run_cmd 'brew doctor'
   end
 
   # Tap casks
-  install_brew 'caskroom/cask/brew-cask'
-  run_cmd 'brew tap caskroom/cask', "Tapping caskroom/cask..."
-  run_cmd 'brew tap caskroom/fonts', "Tapping caskroom/fonts..."
-  run_cmd 'brew tap caskroom/versions', "Tapping caskroom/versions..."
-  run_cmd 'brew tap homebrew/dupes', "Tapping homebrew/dupes..."
-  run_cmd 'brew tap homebrew/versions', "Tapping homebrew/versions..."
+  run_cmd 'brew install caskroom/cask/brew-cask', 'Installing brew-cask...'
+  run_cmd 'brew tap caskroom/cask', 'Tapping caskroom/cask...'
+  run_cmd 'brew tap caskroom/fonts', 'Tapping caskroom/fonts...'
+  run_cmd 'brew tap caskroom/versions', 'Tapping caskroom/versions...'
+  run_cmd 'brew tap homebrew/dupes', 'Tapping homebrew/dupes...'
+  run_cmd 'brew tap homebrew/versions', 'Tapping homebrew/versions...'
 
   ### Install Applications
   install_cask 'backblaze' # Will require cleanup task to run installer.

@@ -62,6 +62,7 @@ if options[:groups].include? 'default'
   end
 
   # Tap casks
+  install_brew 'caskroom/cask/brew-cask'
   run_cmd 'brew tap caskroom/cask', "Tapping caskroom/cask..."
   run_cmd 'brew tap caskroom/fonts', "Tapping caskroom/fonts..."
   run_cmd 'brew tap caskroom/versions', "Tapping caskroom/versions..."

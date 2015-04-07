@@ -16,7 +16,7 @@ def run_cmd(cmd, msg)
 end
 
 def install_brew(app, opts = '')
-  %x[brew list #{app}]
+  %x[brew list #{app} &> /dev/null]
   if $? == 0
     puts "(brew) #{app} already installed...skipped.".colorize(:green)
   else
@@ -27,7 +27,7 @@ def install_brew(app, opts = '')
 end
 
 def uninstall_brew(app)
-  %x[brew list #{app}]
+  %x[brew list #{app} &> /dev/null]
   if $? != 0
     puts "(brew) #{app} is not installed...skipped.".colorize(:green)
   else
@@ -38,7 +38,7 @@ def uninstall_brew(app)
 end
 
 def install_cask(app)
-  %x[brew cask list #{app}]
+  %x[brew cask list #{app} &> /dev/null]
   if $? == 0
     puts "(cask) #{app} already installed...skipped.".colorize(:green)
   else

@@ -28,12 +28,16 @@ if options[:groups].include? 'default'
   ## Install xcode command line tools
   system("xcode-select -v")
   if $? != 0
-    run_cmd "xcode-select --install", "Installing Xcode."
+    run_cmd "xcode-select --install", "Installing Xcode CLI tools."
   else
-    puts "Xcode is already installed...skipped."
+    puts "Xcode CLI tools is already installed...skipped."
   end
+  ## Install full xcode
   system 'xcodebuild &> /dev/null'
-  if $? == 69
+  case $?.exitstatus
+  when 1
+    fail "The full xcode developer application needs to be installed before running this script."
+  when 69
     puts "You need to agree to the Xcode license before continuing...".colorize(:red)
     system("sudo xcodebuild -license")
     if $? != 0

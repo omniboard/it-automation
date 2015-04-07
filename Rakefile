@@ -1,12 +1,18 @@
-task :default => [:build, :install]
+task :default => [:build]
+task :test => [:build, :install]
 
 task :build do
   `gem build ./ahalogy-automation.gemspec`
 end
 
 task :install do
-  gems = Dir['*.gem']
-  `sudo gem install #{gems.first}`
+  gem = Dir['*.gem'].first
+  `sudo gem install #{gem}`
+end
+
+task :push do
+  gem = Dir['*.gem'].first
+  `gem push #{gem}`
 end
 
 task :console do

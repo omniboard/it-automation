@@ -63,7 +63,7 @@ if options[:groups].include? 'default'
     puts "Homebrew already installed...skipped."
   else
     run_cmd 'ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"', "Installing homebrew."
-    run_cmd 'brew doctor'
+    run_cmd 'brew doctor', 'Verifying Homebrew Install...'
   end
 
   # Tap casks
@@ -83,6 +83,12 @@ if options[:groups].include? 'default'
   #install_cask 'macvim'
   install_brew 'macvim', '--override-system-vim --with-python3'
   install_file 'vimrc', '~/.vimrc'
+  if File.directory? File.expand_path('~/.vim/bundle/Vundle.vim')
+    run_cmd 'cd ~/.vim/bundle/Vundle.vim && git pull', 'Updating Vundle via GitHub...'
+  else
+    run_cmd 'git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vim', 'Installing Vundle via GitHub...'
+  end
+  run_cmd 'vim +BundleClean +BundleInstall +qall', 'Configuring Vundle...'
   install_cask 'screenhero' # Configuration will occur on first run of application.
   install_cask 'textmate'
   install_cask 'zoomus' # Configuration will occur on first run of applicaiton.
@@ -136,6 +142,7 @@ if options[:groups].include? 'developer'
   if $? != 0
     run_cmd %q[echo 'eval "$(rbenv init -)"' | sudo tee -a /etc/profile > /dev/null], "Adding rbenv init to /etc/profile..."
   end
+  Dir.mkdir '/usr/local/var/rbenv' if not Dir.exists? '/usr/local/var/rbenv'
   Dir.mkdir '/usr/local/var/rbenv/plugins' if not Dir.exists? '/usr/local/var/rbenv/plugins'
   if File.exists? '/usr/local/var/rbenv/plugins/rbenv-gem-rehash'
     puts 'rbenv-gem-rehash already installed...skipped.'

@@ -16,18 +16,20 @@ def run_cmd(cmd, msg)
 end
 
 def install_brew(app, opts = '')
-  %x[brew list #{app} &> /dev/null]
+  %x[brew list -1 | grep "^#{app}$" &> /dev/null]
   if $? == 0
-    puts "(brew) #{app} already installed...skipped.".colorize(:green)
+    # puts "(brew) #{app} already installed...skipped.".colorize(:green)
+    puts "(brew) updating #{app}...".colorize(:blue)
+    system "brew upgrade #{app} #{opts}"
   else
     puts "(brew) install #{app} #{opts}".colorize(:blue)
-    system 'brew', 'install', app, opts
+    system "brew install #{app} #{opts}"
     abort 'FAILED.' if $? != 0
   end
 end
 
 def uninstall_brew(app)
-  %x[brew list #{app} &> /dev/null]
+  %x[brew list -1 | grep "^#{app}$" &> /dev/null]
   if $? != 0
     puts "(brew) #{app} is not installed...skipped.".colorize(:green)
   else

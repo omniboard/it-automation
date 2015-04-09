@@ -1,0 +1,8 @@
+features:
+  - add pinner group apps
+  - complete configuration of backblaze
+  - add local vimrc section so user customizations are not clobbered
+  - add sshkey generated to github account
+  - automatically clone required repos for developers (?)
+issues:
+  - vim not finding colorscheme on first run

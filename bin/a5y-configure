@@ -76,6 +76,14 @@ if options[:groups].include? 'default'
 
   ### Install Applications
   install_cask 'backblaze' # Will require cleanup task to run installer.
+  # Run BackBlaze Installer
+  cleanup << %q[run_cmd "open -a '/opt/homebrew-cask/Caskroom/backblaze/latest/Backblaze Installer.app'", 'Installing BackBlaze.']
+  target_dir = File.expand_path('~/Downloads')
+  filename = File.join(target_dir, 'hidden2.1.zip')
+  cmd = "curl -o #{filename} https://hiddenapp.com/static/downloads/hidden2.1.zip"
+  run_cmd cmd, 'Downloading Hiddenapp...'
+  run_cmd "cd ~/Downloads && unzip -o #{filename}", 'Unzipping hiddenapp payload...'
+  cleanup << %Q[run_cmd "sudo installer -pkg '#{target_dir}/hidden2.1/Hidden.pkg' -target /", 'Installing Hiddenapp...']
   install_brew 'git' # No further configuration required.
   install_cask 'github' # Configuration will occur on first run of application.
   install_cask 'google-chrome' # No further configuration required.
@@ -93,8 +101,6 @@ if options[:groups].include? 'default'
   install_cask 'textmate'
   install_cask 'zoomus' # Configuration will occur on first run of applicaiton.
 
-  # Run BackBlaze Installer
-  cleanup << %q[run_cmd "open -a '/opt/homebrew-cask/Caskroom/backblaze/latest/Backblaze Installer.app'", "Installing BackBlaze."]
 end # options[:groups] = default
 
 if options[:groups].include? 'developer'
@@ -158,5 +164,6 @@ end # options[:groups] = developer
 if not cleanup.empty?
   cleanup.each do |cmd|
     puts "(cleanup) #{cmd}"
+    eval(cmd)
   end
 end

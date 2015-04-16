@@ -6,12 +6,12 @@ task :build do
 end
 
 task :install do
-  gem = Dir['*.gem'].first
+  gem = Dir['*.gem'].last
   `sudo gem install #{gem}`
 end
 
 task :push do
-  gem = Dir['*.gem'].first
+  gem = Dir['*.gem'].last
   `gem push #{gem}`
 end
 

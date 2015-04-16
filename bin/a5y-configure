@@ -2,9 +2,10 @@
 
 require 'ahalogy/install-helper'
 require 'colorize'
-require 'github'
+require 'daybreak'
+require 'github_api'
+require 'highline/import'
 require 'optparse'
-require 'pp'
 
 groups = ['developer', 'pinner', 'cs', 'marketing', 'content']
 options = {
@@ -19,10 +20,23 @@ OptionParser.new do |opts|
     puts "Available groups: #{groups.join(', ')}"
     exit
   end
+  opts.on("-a", "--ask", "Ask to confirm settings stored in settings database.") { options[:ask] = true }
   opts.on("-d", "--debug", "Enable debug messaging.") { options[:verbose] = true }
 end.parse!
 
+# Open settings database
+db = Daybreak::DB.new File.expand_path('~/.ahalogy.db'), default: ''
+# Verify values are already in the database or ask for them
+if options[:ask] or db[:github_username].empty?
+  db[:github_username] = ask('GitHub Username? (leave blank to skip)')
+end
+if options[:ask] or db[:github_password].empty?
+  db[:github_password] = ask('GitHub Password? (leave blank to skip)') { |q| q.echo = 'x' }
+end
+db.flush # Write changes to disk.
+
 cleanup = []
+notes = []
 
 if options[:groups].include? 'default'
   ## Install xcode command line tools
@@ -30,7 +44,7 @@ if options[:groups].include? 'default'
   if $? != 0
     run_cmd "xcode-select --install", "Installing Xcode CLI tools."
   else
-    puts "Xcode CLI tools is already installed...skipped."
+    puts "Xcode CLI tools is already installed...skipped.".colorize(:green)
   end
   ## Install full xcode
   system 'xcodebuild &> /dev/null'
@@ -45,11 +59,29 @@ if options[:groups].include? 'default'
     end
   end
 
-  # Let's setup our sshkey and github (we need this to pull the config repo)
+  # Let's setup our sshkey and github
   if File.exists? File.expand_path("~/.ssh/id_rsa")
     puts "sshkey exists... skipped."
   else
     run_cmd "ssh-keygen -f ~/.ssh/id_rsa -N ''", "Generating sshkey."
+  end
+  unless db[:github_username].empty?
+    local_key = File.read(File.expand_path('~/.ssh/id_rsa.pub')).split[0...-1].join(' ')
+    github = Github.new basic_auth: "#{db[:github_username]}:#{db[:github_password]}"
+    unless github
+      puts 'Authenication with GitHub failed.'.colorize(:red)
+      puts 'If this is because you have previously entered the wrong username or password, re-run the script with the --ask argument.'
+      exit 1
+    end
+    upload_key = true
+    github.users.keys.list.each do |entry|
+      upload_key = false if entry[:key] == local_key
+    end
+    if upload_key
+      github.users.keys.create title: 'uploaded via ahalogy-automation', key: local_key
+    else
+      puts 'SSH Key already installed on GitHub...skipped.'.colorize(:green)
+    end
   end
 
   # Enable FileVault
@@ -75,20 +107,27 @@ if options[:groups].include? 'default'
   run_cmd 'brew tap homebrew/versions', 'Tapping homebrew/versions...'
 
   ### Install Applications
+  # BackBlaze
   install_cask 'backblaze' # Will require cleanup task to run installer.
-  # Run BackBlaze Installer
-  cleanup << %q[run_cmd "open -a '/opt/homebrew-cask/Caskroom/backblaze/latest/Backblaze Installer.app'", 'Installing BackBlaze.']
+  #cleanup << %q[run_cmd "open -a '/opt/homebrew-cask/Caskroom/backblaze/latest/Backblaze Installer.app'", 'Installing BackBlaze.']
+  notes << "If this is the first run of the Ahalogy installer script, you will need to install BackBlaze by running:\n     open -a '/opt/homebrew-cask/Caskroom/backblaze/latest/Backblaze Installer.app'"
+  # Hidden.app
   target_dir = File.expand_path('~/Downloads')
   filename = File.join(target_dir, 'hidden2.1.zip')
   cmd = "curl -o #{filename} https://hiddenapp.com/static/downloads/hidden2.1.zip"
   run_cmd cmd, 'Downloading Hiddenapp...'
   run_cmd "cd ~/Downloads && unzip -o #{filename}", 'Unzipping hiddenapp payload...'
-  cleanup << %Q[run_cmd "sudo installer -pkg '#{target_dir}/hidden2.1/Hidden.pkg' -target /", 'Installing Hiddenapp...']
+  #cleanup << %Q[run_cmd "sudo installer -pkg '#{target_dir}/hidden2.1/Hidden.pkg' -target /", 'Installing Hiddenapp...']
+  notes << 'You will need to manually install Hidden.app. It has been unzipped in ~/Downloads.'
+  # git
   install_brew 'git' # No further configuration required.
+  # github
   install_cask 'github' # Configuration will occur on first run of application.
+  # Google Chrome
   install_cask 'google-chrome' # No further configuration required.
+  # Google Drive
   install_cask 'google-drive' # Configuration will occur on first run of application.
-  #install_cask 'macvim'
+  # MacVim
   install_brew 'macvim', '--override-system-vim --with-python3'
   install_file 'vimrc', '~/.vimrc'
   if File.directory? File.expand_path('~/.vim/bundle/Vundle.vim')
@@ -97,8 +136,11 @@ if options[:groups].include? 'default'
     run_cmd 'git clone https://github.com/gmarik/Vundle.vim.git ~/.vim/bundle/Vundle.vim', 'Installing Vundle via GitHub...'
   end
   run_cmd 'vim +BundleClean +BundleInstall +qall', 'Configuring Vundle...'
+  # Screen Hero
   install_cask 'screenhero' # Configuration will occur on first run of application.
+  # TextMate
   install_cask 'textmate'
+  # Zoom.us
   install_cask 'zoomus' # Configuration will occur on first run of applicaiton.
 
 end # options[:groups] = default
@@ -115,20 +157,19 @@ if options[:groups].include? 'developer'
   run_cmd 'pip3 install cql &> /dev/null', 'Installing cql python3 module via pip3...'
   install_cask 'dash'
   install_brew 'node'
-  install_brew 'nvm'
   install_brew 'phantomjs'
   install_brew 'homebrew/versions/postgresql92'
-  install_brew 'pow'
-  install_brew 'rbenv'
   install_brew 'redis'
   install_brew 'ruby-build'
   install_cask 'slack'
   install_cask 'tower'
-  # Configure nvm
+  # nvm
+  install_brew 'nvm'
   mkdir '~/.nvm'
   add_line_to_file '~/.zshrc', 'export NVM_DIR=~/.nvm'
   add_line_to_file '~/.zshrc', 'source $(brew --prefix nvm)/nvm.sh'
-  # Configure pow
+  # pow
+  install_brew 'pow'
   if not File.directory? File.expand_path('~/Library/Application Support/Pow/Hosts')
     run_cmd 'mkdir -p ~/Library/Application\ Support/Pow/Hosts', 'Creating support directory for pow hosts...'
   end
@@ -139,7 +180,8 @@ if options[:groups].include? 'developer'
   run_cmd 'pow --install-local', 'Configuring launchd agent for pow...'
   run_cmd 'sudo launchctl load -w /Library/LaunchDaemons/cx.pow.firewall.plist', 'Configuring pow launchd agent to start on boot...'
   run_cmd 'launchctl load -w ~/Library/LaunchAgents/cx.pow.powd.plist', 'Starting pow...'
-  # Configure rbenv
+  # rbenv
+  install_brew 'rbenv'
   system("grep -q -F 'export RBENV_ROOT=/usr/local/var/rbenv' /etc/profile")
   if $? != 0
     run_cmd "echo 'export RBENV_ROOT=/usr/local/var/rbenv' | sudo tee -a /etc/profile > /dev/null", "Adding RBENV_ROOT to /etc/profile..."
@@ -159,11 +201,32 @@ if options[:groups].include? 'developer'
   if not File.directory? File.expand_path('~/.oh-my-zsh')
     run_cmd "curl -L https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh | sh", "Installing oh-my-zsh..."
   end
+  # Set the default terminal theme to something more bareable.
+  #run_cmd 'defaults write com.apple.Terminal "Default Window Settings" "Pro"'
 end # options[:groups] = developer
 
+if options[:groups].include? 'pinner'
+  install_cask 'adobe-createive-cloud'
+  install_cask 'microsoft-office'
+  install_cask 'joinme'
+end # options[:groups] = pinner
+
+if options[:groups].include? 'cs'
+  install_cask 'microsoft-office'
+end
+
+# Cleanup tasks
+db.close
 if not cleanup.empty?
   cleanup.each do |cmd|
-    puts "(cleanup) #{cmd}"
+    #puts "(cleanup) #{cmd}"
     eval(cmd)
+  end
+end
+
+if not notes.empty?
+  puts '### Installer Notes ###'.colorize(:red)
+  notes.each_with_index do |note, index|
+    puts "#{index + 1}. #{note}"
   end
 end

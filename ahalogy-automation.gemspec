@@ -1,8 +1,8 @@
 Gem::Specification.new do |gem|
   gem.name        = 'ahalogy-automation'
-  gem.version     = '0.0.3'
+  gem.version     = '0.0.4'
   gem.licenses    = ['MIT']
-  gem.date        = '2015-03-23'
+  gem.date        = '2015-05-05'
   gem.summary     = 'Scripts to handle IT automation.'
   gem.description = 'Script that installs many applications on Ahalogy Mac computers.'
   gem.authors     = ['Zan Loy']
@@ -12,7 +12,7 @@ Gem::Specification.new do |gem|
   gem.executables = ['a5y-configure']
 
   gem.add_runtime_dependency 'colorize', '~> 0'
-  gem.add_runtime_dependency 'daybreak', '~> 0.3.0'
-  gem.add_runtime_dependency 'github_api', '~> 0.12.3'
+  gem.add_runtime_dependency 'daybreak', '~> 0.3', '>= 0.3.0'
+  gem.add_runtime_dependency 'github_api', '~> 0.12', '>= 0.12.3'
   gem.add_runtime_dependency 'highline', '~> 1.7'
 end

@@ -12,41 +12,52 @@ def run_cmd(cmd, msg)
   puts msg
   puts "(cmd) '#{cmd}'".colorize(:blue)
   system cmd
-  abort 'FAILED.' if $? != 0
+  raise "Failed with exit code: #{$?}" if $? != 0
 end
 
 def install_brew(app, opts = '')
+  if app.is_a? Array
+    app.each { |a| install_brew a, opts }
+    return
+  end
   %x[brew list -1 | grep "^#{app}$" &> /dev/null]
   if $? == 0
-    # puts "(brew) #{app} already installed...skipped.".colorize(:green)
     puts "(brew) updating #{app}...".colorize(:blue)
     system "brew upgrade #{app} #{opts}"
   else
     puts "(brew) install #{app} #{opts}".colorize(:blue)
     system "brew install #{app} #{opts}"
-    abort 'FAILED.' if $? != 0
+    raise "Failed with exit code: #{$?}" if $? != 0
   end
 end
 
 def uninstall_brew(app)
+  if app.is_a? Array
+    app.each { |a| uninstall_brew a }
+    return
+  end
   %x[brew list -1 | grep "^#{app}$" &> /dev/null]
   if $? != 0
     puts "(brew) #{app} is not installed...skipped.".colorize(:green)
   else
     puts "(brew-uninstall) uninstall #{app}".colorize(:blue)
-    system 'brew', 'uninstall', '--force', app
-    abort 'FAILED.' if $? != 0
+    system 'brew', 'uninstall', '--force', app.to_s
+    raise "Failed with exit code: #{$?}" if $? != 0
   end
 end
 
 def install_cask(app)
+  if app.is_a? Array
+    app.each { |a| install_cask a }
+    return
+  end
   %x[brew cask list #{app} &> /dev/null]
   if $? == 0
     puts "(cask) #{app} already installed...skipped.".colorize(:green)
   else
     puts "(cask) install #{app}".colorize(:blue)
-    system 'brew', 'cask', 'install', app
-    abort 'FAILED.' if $? != 0
+    system 'brew', 'cask', 'install', app.to_s
+    raise "Failed with exit code: #{$?}" if $? != 0
   end
 end
 

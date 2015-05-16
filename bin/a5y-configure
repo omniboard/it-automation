@@ -14,7 +14,7 @@ user_uid = ENV['SUDO_UID']
 user_gid = ENV['SUDO_GID']
 fail 'Environment variables for SUDO_UID and SUDO_GID are invalid' if user_uid.nil? or user_gid.nil?
 
-groups = [:developer, :pinner, :cs, :designer]
+groups = [:developer, :pinner, :cs, :designer, :'systems-manager']
 options = {
   groups: [:default],
   verbose: false,
@@ -84,11 +84,13 @@ begin
         system('curl --output /tmp/xcode.dmg https://s3-us-west-1.amazonaws.com/a5y-is-and-t/Xcode_6.3.1.dmg')
         xcode_dmg = '/tmp/xcode.dmg'
       end
-      command = Command.run("hdiutil mount '#{xcode_dmg}'")
+      command = Command.run("hdiutil attach -nobrowse '#{xcode_dmg}'")
       fail "Can't mount Xcode dmg at #{xcode_dmg}." unless command.status == 0
-      device = command.stdout.lines.last.split(' ').first.strip
+      line = command.stdout.lines.last
+      device = line.split(' ').first.strip
+      dir = line.split(' ').last.strip
       puts 'Copying Xcode.app to /Applications...'.colorize(:blue)
-      command = Command.run("cp -R '/Volumes/Xcode/Xcode.app' /Applications")
+      command = Command.run("cp -R '#{dir}/Xcode.app' /Applications")
       fail 'Error trying to install Xcode.app in /Applications' unless command.status == 0
       Command.run "hdiutil unmount #{device}"
       FileUtils.rm xcode_dmg if xcode_dmg == '/tmp/xcode.dmg'
@@ -103,10 +105,14 @@ begin
     # A few more random things to do while we are still root
     # TODO: Clean this up
 
+    # Make some directories so HomeBrew installer doesn't need sudo
+    mkdir '/usr/local', mode: 0775
+    mkdir '/Library/Caches/Homebrew', mode: 0775
+
     # Make Caskroom for brew cask so it doesn't need sudo to do it.
     mkdir '/opt', mode: 0755
-    mkdir '/opt/homebrew_cask', owner: user_name, group: user_gid
-    mkdir '/opt/homebrew_cask/Caskroom', owner: user_name, group: user_gid
+    mkdir '/opt/homebrew-cask', owner: user_name, group: user_gid
+    mkdir '/opt/homebrew-cask/Caskroom', owner: user_name, group: user_gid
 
     if options[:groups].include? :developer
       # Set the user shell here before we drop privs so oh-my-zsh installer doesn't ask for password
@@ -120,6 +126,13 @@ begin
       else
         run_cmd 'git clone https://github.com/sstephenson/rbenv-gem-rehash.git /usr/local/var/rbenv/plugins/rbenv-gem-rehash', 'Installing rbenv-gem-rehash...'
       end
+    end
+
+    if options[:groups].include? :'systems-manager'
+      puts 'Installing Ahalogy-Systems-Manager.pkg...'.colorize(:blue)
+      system('curl --output /tmp/ahalogy-systems-manager.pkg https://s3-us-west-1.amazonaws.com/a5y-is-and-t/Ahalogy-Systems-Manager.pkg')
+      system('installer -pkg /tmp/ahalogy-systems-manager.pkg -target /')
+      FileUtils.rm '/tmp/ahalogy-systems-manager.pkg'
     end
 
     # Dropping privileges to the sudo_user
@@ -156,7 +169,7 @@ begin
     if File.exists? '/usr/local/bin/brew'
       puts 'Homebrew already installed...skipped.'.colorize(:green)
     else
-      run_cmd 'ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"', "Installing homebrew."
+      run_cmd 'echo | ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"', "Installing homebrew."
       run_cmd 'brew doctor', 'Verifying Homebrew Install...'
     end
 
@@ -172,8 +185,8 @@ begin
 
     ### Install Applications
     # Apps via Brew
-    install_brew [:git, :python, :python3, :cassandra]
-    install_brew 'macvim', '--override-system-vim --with-python3'
+    install_brew [:git, :python, :python3, :cassandra, :macvim]
+    #install_brew 'macvim', '--override-system-vim --with-python3'
     # Apps via Cask
     install_cask [:backblaze, :slack, :github, 'google-chrome', 'google-drive', :screenhero, :textmate, :zoomus]
     # BackBlaze
@@ -238,13 +251,14 @@ begin
     install_cask ['adobe-creative-cloud', 'sketch-tool', :invisionsync, :tower, :anvil]
     notes << "If this is the first time running a5y-configure, you will need to manually install Adobe Creative Cloud by running:\n     open '/opt/homebrew-cask/Caskroom/adobe-creative-cloud/latest/Creative Cloud Installer.app'"
   end
+
 rescue
   raise
 ensure
   db.close
 end
 
-if not notes.empty?
+unless notes.empty?
   puts '### Installer Notes ###'.colorize(:red)
   notes.each_with_index do |note, index|
     puts "#{index + 1}. #{note}"

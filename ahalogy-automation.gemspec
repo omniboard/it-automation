@@ -12,7 +12,7 @@ Gem::Specification.new do |gem|
   gem.executables = ['a5y-configure']
 
   gem.add_runtime_dependency 'colorize', '~> 0'
-  gem.add_runtime_dependency 'command', '~> 1.0.0'
+  gem.add_runtime_dependency 'command', '~> 1.0.0', '>= 1.0.0'
   gem.add_runtime_dependency 'daybreak', '~> 0.3', '>= 0.3.0'
   gem.add_runtime_dependency 'github_api', '~> 0.12', '>= 0.12.3'
   gem.add_runtime_dependency 'highline', '~> 1.7'

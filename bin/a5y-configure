@@ -2,13 +2,17 @@
 
 require 'ahalogy/install-helper'
 require 'colorize'
+require 'command'
 require 'daybreak'
 require 'github_api'
 require 'highline/import'
 require 'optparse'
 
-user = ENV['USER']
-fail 'This script should not be run as root.' if user == 'root'
+fail 'This script should run as root using sudo.' unless ENV['USER'] == 'root'
+user_name = ENV['SUDO_USER']
+user_uid = ENV['SUDO_UID']
+user_gid = ENV['SUDO_GID']
+fail 'Environment variables for SUDO_UID and SUDO_GID are invalid' if user_uid.nil? or user_gid.nil?
 
 groups = [:developer, :pinner, :cs, :designer]
 options = {
@@ -28,7 +32,8 @@ OptionParser.new do |opts|
   end
   opts.on('--skip-filevault', 'Skip configuration of FileVault.') { options[:skip_filevault] = true }
   opts.on('--skip-github', 'Skip configuration of GitHub sshkey') { options[:skip_github] = true }
-  opts.on('-a', '--ask', '"Ask to confirm settings stored in settings database.') { options[:ask] = true }
+  opts.on('-a', '--ask', 'Ask to confirm settings stored in settings database.') { options[:ask] = true }
+  opts.on('--xcode FILE', 'Use local xcode dmg file for install.') { |file| options[:xcode] = file }
   opts.on('-d', '--debug', 'Enable debug messaging.') { options[:verbose] = true }
 end.parse!
 
@@ -50,35 +55,75 @@ notes = []
 
 begin
   if options[:groups].include? :default
-    ## Install xcode command line tools
+    # Install xcode command line tools
     system('xcode-select -v')
     if $? != 0
       run_cmd 'xcode-select --install', 'Installing Xcode CLI tools.'
     else
       puts 'Xcode CLI tools is already installed...skipped.'.colorize(:green)
     end
-    ## Install full xcode
-    system 'xcodebuild &> /dev/null'
-    case $?.exitstatus
-    when 1
-      fail 'The full xcode developer application needs to be installed before running this script.'.colorize(:red)
-    when 69
-      puts 'You need to agree to the Xcode license before continuing...'.colorize(:red)
-      system('sudo xcodebuild -license')
-      if $? != 0
-        fail 'Xcode is not configured correctly.'
-      end
-    end
 
     # Enable FileVault
     unless options[:skip_filevault]
       begin
-        run_cmd "sudo fdesetup enable -user admin -usertoadd #{user}", 'Enabling FileVault... (skip by re-running script with --skip-filevault)'
+        run_cmd "fdesetup enable -user admin -usertoadd #{user_name}", 'Enabling FileVault... (skip by re-running script with --skip-filevault)'
         notes << 'FileVault was enabled. You will need to reboot to start the encryption process.'
       rescue
         puts 'FileVault already enabled...skipped'.colorize(:green)
       end
     end
+
+    # Install full xcode
+    system 'xcodebuild &> /dev/null'
+    case $?.exitstatus
+    when 1
+      if options[:xcode]
+        xcode_dmg = options[:xcode]
+      else
+        puts 'Downloading Xcode to install...'.colorize(:blue)
+        system('curl --output /tmp/xcode.dmg https://s3-us-west-1.amazonaws.com/a5y-is-and-t/Xcode_6.3.1.dmg')
+        xcode_dmg = '/tmp/xcode.dmg'
+      end
+      command = Command.run("hdiutil mount '#{xcode_dmg}'")
+      fail "Can't mount Xcode dmg at #{xcode_dmg}." unless command.status == 0
+      device = command.stdout.lines.last.split(' ').first.strip
+      puts 'Copying Xcode.app to /Applications...'.colorize(:blue)
+      command = Command.run("cp -R '/Volumes/Xcode/Xcode.app' /Applications")
+      fail 'Error trying to install Xcode.app in /Applications' unless command.status == 0
+      Command.run "hdiutil unmount #{device}"
+      FileUtils.rm xcode_dmg if xcode_dmg == '/tmp/xcode.dmg'
+      install_file 'com.apple.dt.Xcode.plist', '/Library/Preferences/com.apple.dt.Xcode.plist'
+    when 69
+      install_file 'com.apple.dt.Xcode.plist', '/Library/Preferences/com.apple.dt.Xcode.plist'
+    end
+
+    # Enable system firewall
+    run_cmd 'defaults write /Library/Preferences/com.apple.alf globalstate -int 1', 'Enabling firewall.'
+
+    # A few more random things to do while we are still root
+    # TODO: Clean this up
+
+    # Make Caskroom for brew cask so it doesn't need sudo to do it.
+    mkdir '/opt', mode: 0755
+    mkdir '/opt/homebrew_cask', owner: user_name, group: user_gid
+    mkdir '/opt/homebrew_cask/Caskroom', owner: user_name, group: user_gid
+
+    if options[:groups].include? :developer
+      # Set the user shell here before we drop privs so oh-my-zsh installer doesn't ask for password
+      Command.run "chsh -s /bin/zsh #{user_name}"
+      # Setup rbenv
+      run_cmd "grep -q -F 'export RBENV_ROOT=/usr/local/var/rbenv' /etc/profile || echo 'export RBENV_ROOT=/usr/local/var/rbenv' >> /etc/profile", 'Adding RBENV_ROOT to /etc/profile...'
+      run_cmd "grep -q -F 'rbenv init -' /etc/profile || echo 'eval \"$(rbenv init -)\"' >> /etc/profile", 'Adding rbenv init to /etc/profile...'
+      mkdir '/usr/local/var/rbenv/plugins'
+      if File.exists? '/usr/local/var/rbenv/plugins/rbenv-gem-rehash'
+        puts 'rbenv-gem-rehash already installed...skipped.'.colorize(:green)
+      else
+        run_cmd 'git clone https://github.com/sstephenson/rbenv-gem-rehash.git /usr/local/var/rbenv/plugins/rbenv-gem-rehash', 'Installing rbenv-gem-rehash...'
+      end
+    end
+
+    # Dropping privileges to the sudo_user
+    Process::Sys.setuid(user_name)
 
     unless options[:skip_github]
       # Let's setup our sshkey and github
@@ -106,9 +151,6 @@ begin
         end
       end
     end
-
-    # Enable system firewall
-    run_cmd 'sudo defaults write /Library/Preferences/com.apple.alf globalstate -int 1', 'Enabling firewall.'
 
     # Install homebrew
     if File.exists? '/usr/local/bin/brew'
@@ -173,26 +215,8 @@ begin
     unless File.symlink? File.expand_path('~/.pow')
       run_cmd 'ln -s ~/Library/Application\ Support/Pow/Hosts ~/.pow', 'Symlinking pow hosts directory to ~/.pow ...'
     end
-    run_cmd 'sudo pow --install-system', 'Configuring port 80 forwarding for pow...'
-    run_cmd 'pow --install-local', 'Configuring launchd agent for pow...'
-    run_cmd 'sudo launchctl load -w /Library/LaunchDaemons/cx.pow.firewall.plist', 'Configuring pow launchd agent to start on boot...'
-    run_cmd 'launchctl load -w ~/Library/LaunchAgents/cx.pow.powd.plist', 'Starting pow...'
-    # Setup rbenv
-    system("grep -q -F 'export RBENV_ROOT=/usr/local/var/rbenv' /etc/profile")
-    unless $? == 0
-      run_cmd "echo 'export RBENV_ROOT=/usr/local/var/rbenv' | sudo tee -a /etc/profile > /dev/null", "Adding RBENV_ROOT to /etc/profile..."
-    end
-    system("grep -q -F 'rbenv init -' /etc/profile")
-    unless $? == 0
-      run_cmd %q[echo 'eval "$(rbenv init -)"' | sudo tee -a /etc/profile > /dev/null], "Adding rbenv init to /etc/profile..."
-    end
-    mkdir '/usr/local/var/rbenv'
-    mkdir '/usr/local/var/rbenv/plugins'
-    if File.exists? '/usr/local/var/rbenv/plugins/rbenv-gem-rehash'
-      puts 'rbenv-gem-rehash already installed...skipped.'.colorize(:green)
-    else
-      run_cmd 'sudo git clone https://github.com/sstephenson/rbenv-gem-rehash.git /usr/local/var/rbenv/plugins/rbenv-gem-rehash', 'Installing rbenv-gem-rehash...'
-    end
+    notes << "You will need to run the following commands to setup port 80 forwarding for pow:\n     sudo pow --install-system\n     pow --install-local"
+    notes << "You will need to run the following commands if you want pow to start on boot:\n     sudo launchctl load -w /Library/LaunchDaemons/cx.pow.firewall.plist\n     launchctl load -w ~/Library/LaunchAgents/cx.pow.powd.plist"
     # OH MY ZSH!
     unless File.directory? File.expand_path('~/.oh-my-zsh')
       run_cmd 'curl -L https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh | sh', 'Installing oh-my-zsh...'

@@ -86,7 +86,7 @@ def add_line_to_file(file, line, regex = nil)
   run_cmd "grep '#{regex}' #{file} --quiet || echo '#{line}' >> #{file}", "Updating #{file}..."
 end
 
-def mkdir(dir)
+def mkdir(dir, mode: nil, owner: nil, group: nil)
   dir = File.expand_path dir
   if File.exists? dir
     if File.directory? dir
@@ -96,6 +96,8 @@ def mkdir(dir)
     end
   else
     puts "(mkdir) Creating directory #{dir}...".colorize(:blue)
-    FileUtils.mkdir dir
+    FileUtils.mkdir_p dir
   end
+  FileUtils.chmod mode, dir unless mode.nil?
+  FileUtils.chown owner, group, dir
 end

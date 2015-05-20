@@ -66,7 +66,7 @@ begin
     # Enable FileVault
     unless options[:skip_filevault]
       begin
-        run_cmd "fdesetup enable -usertoadd #{user_name}", 'Enabling FileVault... (skip by re-running script with --skip-filevault)'
+        run_cmd "fdesetup enable -user #{user_name}", 'Enabling FileVault... (skip by re-running script with --skip-filevault)'
         notes << 'FileVault was enabled. You will need to reboot to start the encryption process.'
       rescue
         puts 'FileVault already enabled...skipped'.colorize(:green)

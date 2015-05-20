@@ -66,7 +66,7 @@ begin
     # Enable FileVault
     unless options[:skip_filevault]
       begin
-        run_cmd "fdesetup enable -user admin -usertoadd #{user_name}", 'Enabling FileVault... (skip by re-running script with --skip-filevault)'
+        run_cmd "fdesetup enable -user #{user_name}", 'Enabling FileVault... (skip by re-running script with --skip-filevault)'
         notes << 'FileVault was enabled. You will need to reboot to start the encryption process.'
       rescue
         puts 'FileVault already enabled...skipped'.colorize(:green)
@@ -81,7 +81,7 @@ begin
         xcode_dmg = options[:xcode]
       else
         puts 'Downloading Xcode to install...'.colorize(:blue)
-        system('curl --output /tmp/xcode.dmg https://s3-us-west-1.amazonaws.com/a5y-is-and-t/Xcode_6.3.1.dmg')
+        system('curl --output /tmp/xcode.dmg https://s3-us-west-1.amazonaws.com/a5y-is-and-t/Xcode_6.3.2.dmg')
         xcode_dmg = '/tmp/xcode.dmg'
       end
       command = Command.run("hdiutil attach -nobrowse '#{xcode_dmg}'")

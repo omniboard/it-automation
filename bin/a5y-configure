@@ -55,6 +55,8 @@ notes = []
 
 begin
   if options[:groups].include? :default
+    # Turns off Sleep and DisplaySleep
+    run_cmd "pmset -a displaysleep 0 disksleep 0 sleep 0"
     # Install xcode command line tools
     system('xcode-select -v')
     if $? != 0
@@ -251,6 +253,8 @@ begin
     install_cask ['adobe-creative-cloud', 'sketch-tool', :invisionsync, :tower, :anvil]
     notes << "If this is the first time running a5y-configure, you will need to manually install Adobe Creative Cloud by running:\n     open '/opt/homebrew-cask/Caskroom/adobe-creative-cloud/latest/Creative Cloud Installer.app'"
   end
+  # Sets power settings to default profiles
+  run_cmd "pmset -c 2 -b 1 -u 1"
 
 rescue
   raise

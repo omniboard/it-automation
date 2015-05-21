@@ -35,6 +35,7 @@ OptionParser.new do |opts|
   opts.on('-a', '--ask', 'Ask to confirm settings stored in settings database.') { options[:ask] = true }
   opts.on('--xcode FILE', 'Use local xcode dmg file for install.') { |file| options[:xcode] = file }
   opts.on('-d', '--debug', 'Enable debug messaging.') { options[:verbose] = true }
+  opts.on('-b', '--battery', 'Enable battery mode.') { options[:battery_mode] = true }
 end.parse!
 
 # Open settings database
@@ -55,8 +56,12 @@ notes = []
 
 begin
   if options[:groups].include? :default
-    # Turns off Sleep and DisplaySleep
-    run_cmd "pmset -a displaysleep 0 disksleep 0 sleep 0"
+    
+    # Enable Battery Mode
+    if options[:battery_mode]
+      # Turns off Sleep and DisplaySleep
+      run_cmd 'sudo pmset -a displaysleep 0 disksleep 0 sleep 0', 'Disabling sleep.'
+    end
     # Install xcode command line tools
     system('xcode-select -v')
     if $? != 0
@@ -253,8 +258,11 @@ begin
     install_cask ['adobe-creative-cloud', 'sketch-tool', :invisionsync, :tower, :anvil]
     notes << "If this is the first time running a5y-configure, you will need to manually install Adobe Creative Cloud by running:\n     open '/opt/homebrew-cask/Caskroom/adobe-creative-cloud/latest/Creative Cloud Installer.app'"
   end
+  
   # Sets power settings to default profiles
-  run_cmd "pmset -c 2 -b 1 -u 1"
+  if options[:battery_mode]
+    run_cmd 'pmset -c 2 -b 1 -u 1', 'Restoring sleep defaults.'
+  end
 
 rescue
   raise

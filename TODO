@@ -1,4 +1,4 @@
 features:
-
+  add beter descripts of what each group installs. Not sure if it whould be in `-l` `--list` or `-h`
 issues:
 

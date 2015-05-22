@@ -1,4 +1,5 @@
-features:
-  add beter descripts of what each group installs. Not sure if it whould be in `-l` `--list` or `-h` it almost certainly should b how do we best display it.e part of `-h` but it almost certainly should be viewable in `-h`
+features:in
+  add beter descripts of what each group installs. Not sure if it whould be in `-l` `--list` or `-h` it almost certainly should be in how do we best display it part of `-h` but it almost certainly should be viewable.
+  # or we could include it in `-h` and `--help`
 issues:
 

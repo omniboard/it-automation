@@ -1,12 +1,12 @@
 Gem::Specification.new do |gem|
   gem.name        = 'ahalogy-automation'
-  gem.version     = '0.0.5'
+  gem.version     = '0.0.6'
   gem.licenses    = ['MIT']
-  gem.date        = '2015-05-15'
+  gem.date        = '2015-05-27'
   gem.summary     = 'Scripts to handle IT automation.'
   gem.description = 'Scripts that install applications on Ahalogy Mac computers.'
-  gem.authors     = ['Zan Loy']
-  gem.email       = 'zan.loy@gmail.com'
+  gem.authors     = ['Zan Loy', 'Brian Cerchio']
+  gem.email       = ['zan.loy@gmail.com', 'brian.cerchio@gmail.com']
   gem.homepage    = 'https://www.ahalogy.com'
   gem.files       = `git ls-files`.split("\n") - %w[.gitignore]
   gem.executables = ['a5y-configure']

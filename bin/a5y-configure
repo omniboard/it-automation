@@ -219,6 +219,7 @@ begin
 
   if options[:groups].include? :developer
     puts "### Starting installation of developer apps... ###"
+    run_cmd 'sudo pmset -a sleep 0', 'Disabling Sleep'
     install_brew [:node, :phantomjs, 'homebrew/versions/postgresql92', :redis, 'ruby-build', :nvm, :pow, :rbenv]
     install_cask ['1password', :alfred, :anvil, :dash, :tower]
     # Setup cql
@@ -255,13 +256,16 @@ begin
   end
 
   if options[:groups].include? :designer
+    run_cmd 'sudo pmset -a sleep 0', 'Disabling Sleep'
     install_cask ['adobe-creative-cloud', 'sketch-tool', :invisionsync, :tower, :anvil]
     notes << "If this is the first time running a5y-configure, you will need to manually install Adobe Creative Cloud by running:\n     open '/opt/homebrew-cask/Caskroom/adobe-creative-cloud/latest/Creative Cloud Installer.app'"
   end
   
   # Sets power settings to default profiles
   if options[:battery_mode]
-    run_cmd 'pmset -c 2 -b 1 -u 1', 'Restoring sleep defaults.'
+    unless options[:groups].include? :developer, :designer  
+      run_cmd 'pmset -c 2 -b 1 -u 1', 'Restoring sleep defaults.'
+    end
   end
 
 rescue

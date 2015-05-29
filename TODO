@@ -1,7 +1,4 @@
 features:in
-  add beter descripts of what each group installs. Not sure if it whould be in `-l` `--list`. 
-  
-  It almost certainly should be in how do we best display it part of `-h` but it almost certainly should be viewable.
-  # or we could include it in `-h` and `--help`
+ Need to add a way to manage filevault recovery keys that removes end users from having to remember a password or save a recovery key. Either an institutional key needs to be added (but not viewable in the script code) or store the personal key that is generated in a secure bucket.
 issues:
 

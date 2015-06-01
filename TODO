@@ -1,4 +1,5 @@
 features:in
  Need to add a way to manage filevault recovery keys that removes end users from having to remember a password or save a recovery key. Either an institutional key needs to be added (but not viewable in the script code) or store the personal key that is generated in a secure bucket.
+ Also pow seems to be a bit convoluted, maybe install it without brew or at least automate the rest of the set up steps now that the script is run with sudo
 issues:
 

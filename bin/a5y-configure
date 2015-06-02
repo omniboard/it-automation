@@ -170,6 +170,7 @@ begin
           puts 'SSH Key already installed on GitHub...skipped.'.colorize(:green)
         end
       end
+      run_cmd 'sudo srm -f -m ~/.ahalogy.db', 'Sanitizing database...'
     end
 
     # Install homebrew

@@ -43,7 +43,7 @@ db = Daybreak::DB.new File.expand_path('~/.ahalogy.db'), default: ''
 # Verify values are already in the database or ask for them
 unless options[:skip_github]
   if options[:ask] or db[:github_username].empty?
-    db[:github_username] = ask('GitHub Username? (leave blank to skip)')
+    db[:github_username] = ask('GitHub Username? (leave blank to skip or if you have 2FA enabled...)')
   end
   if !db[:github_username].empty? and (options[:ask] or db[:github_password].empty?)
     db[:github_password] = ask('GitHub Password?') { |q| q.echo = 'x' }

@@ -2,7 +2,12 @@
 Scripts for setting up user machines
 
 This script is to be used for automated builds of new machines and updating existing machines. There are several groups and options to tailor the build for the correct user. The script installs the standard package of applications plus any group specific apps required. The available groups are developer, pinner, cs, designer, and systems-manager. Additionally, it can install the remote client for the systems manager, turn on FileVault, add your ssh key to your GitHub account, and install a local version of Xcode instead of our hosted current release.
-This script is available as a gem and can be installed by
+
+Xcode CLI is required to run this script. This can be accomplished by:
+
+`xcode-select --install`
+
+This script is available as a gem and can be installed by:
 
 `sudo gem install ahalogy-automation`
 

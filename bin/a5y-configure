@@ -263,7 +263,7 @@ begin
   
   # Sets power settings to default profiles
   if options[:battery_mode]
-    unless options[:groups].include? :developer, :designer  
+    unless options[:groups].include? :developer
       run_cmd 'pmset -c 2 -b 1 -u 1', 'Restoring sleep defaults.'
     end
   end

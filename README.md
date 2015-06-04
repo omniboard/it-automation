@@ -27,7 +27,7 @@ The script can be run for various groups by running:
 
 Groups include `developer, pinner, cs, designer, systems-manager, and all`.
 
-With the first run on a machine, the group `--systems-manager` should be used to install the systems manager remote client.
+With it is the first run on a machine, the group `--systems-manager` should be used to install the systems manager remote client.
 
 Several options can also be appended to the command.
 

@@ -1,6 +1,6 @@
 Gem::Specification.new do |gem|
   gem.name        = 'ahalogy-automation'
-  gem.version     = '0.0.7'
+  gem.version     = '0.0.8'
   gem.licenses    = ['MIT']
   gem.date        = '2015-06-26'
   gem.summary     = 'Scripts to handle IT automation.'

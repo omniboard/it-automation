@@ -231,6 +231,7 @@ begin
     add_line_to_file '~/.zshrc', 'export NVM_DIR=~/.nvm'
     add_line_to_file '~/.zshrc', 'source $(brew --prefix nvm)/nvm.sh'
     # install ember-cli
+    run_cmd 'npm install -g bower', 'Installing bower...'
     run_cmd 'npm install -g ember-cli', 'Installing ember-cli...'
     # Setup pow
     unless File.directory? File.expand_path('~/Library/Application Support/Pow/Hosts')

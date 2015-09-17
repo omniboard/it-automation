@@ -88,7 +88,7 @@ begin
         xcode_dmg = options[:xcode]
       else
         puts 'Downloading Xcode to install...'.colorize(:blue)
-        system('curl --output /tmp/xcode.dmg https://s3-us-west-1.amazonaws.com/a5y-is-and-t/Xcode_6.4.dmg')
+        system('curl --output /tmp/xcode.dmg https://s3-us-west-1.amazonaws.com/a5y-is-and-t/Xcode_7.0.dmg')
         xcode_dmg = '/tmp/xcode.dmg'
       end
       command = Command.run("hdiutil attach -nobrowse '#{xcode_dmg}'")
@@ -196,7 +196,7 @@ begin
     install_brew [:git, :python, :python3, :cassandra, :macvim]
     #install_brew 'macvim', '--override-system-vim --with-python3'
     # Apps via Cask
-    install_cask [:backblaze, :slack, :github, 'google-chrome', 'google-drive', :screenhero, :textmate, :zoomus]
+    install_cask [:backblaze, :slack, 'github-desktop', 'google-chrome', 'google-drive', :screenhero, :textmate, :zoomus]
     # BackBlaze
     notes << "If this is the first run of the Ahalogy installer script, you will need to install BackBlaze by running:\n     open '/opt/homebrew-cask/Caskroom/backblaze/latest/Backblaze Installer.app'"
     # Hidden.app

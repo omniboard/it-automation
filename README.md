@@ -42,3 +42,5 @@ Several options can also be appended to the command.
 `-d` or `--debug` Enable debug messaging.
 
 `-b` or `--battery` Enable battery mode(temporarily suspends sleep).
+
+If you have troubles with this script, there may be an issue with brew. This usually presents as an error that now cask is available. Try running `brew update && brew upgrade brew-cask && brew cleanup && brew cask cleanup` followed by `brew doctor` and rerunning the script.

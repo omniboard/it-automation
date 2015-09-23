@@ -199,15 +199,6 @@ begin
     install_cask [:backblaze, :slack, 'github-desktop', 'google-chrome', 'google-drive', :screenhero, :textmate, :zoomus]
     # BackBlaze
     notes << "If this is the first run of the Ahalogy installer script, you will need to install BackBlaze by running:\n     open '/opt/homebrew-cask/Caskroom/backblaze/latest/Backblaze Installer.app'"
-    # Hidden.app
-    target_dir = File.expand_path('~/Downloads')
-    filename = File.join(target_dir, 'hidden2.1.zip')
-    unless File.exists? filename
-      cmd = "curl -o #{filename} https://hiddenapp.com/static/downloads/hidden2.1.zip"
-      run_cmd(cmd, 'Downloading Hiddenapp...')
-      run_cmd "cd #{target_dir} && unzip -o #{filename}", 'Unzipping hiddenapp payload...'
-      notes << "You will need to manually install Hidden.app. It has been unzipped in #{target_dir}."
-    end
     # MacVim
     install_file 'vimrc', '~/.vimrc'
     if File.directory? File.expand_path('~/.vim/bundle/Vundle.vim')

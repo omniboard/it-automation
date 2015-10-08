@@ -1,8 +1,8 @@
 Gem::Specification.new do |gem|
   gem.name        = 'ahalogy-automation'
-  gem.version     = '0.0.10'
+  gem.version     = '0.0.11'
   gem.licenses    = ['MIT']
-  gem.date        = '2015-09-17'
+  gem.date        = '2015-10-08'
   gem.summary     = 'Scripts to handle IT automation.'
   gem.description = 'Scripts that install applications on Ahalogy Mac computers.'
   gem.authors     = ['Zan Loy', 'Brian Cerchio']

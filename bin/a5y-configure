@@ -88,7 +88,7 @@ begin
         xcode_dmg = options[:xcode]
       else
         puts 'Downloading Xcode to install...'.colorize(:blue)
-        system('curl --output /tmp/xcode.dmg https://s3-us-west-1.amazonaws.com/a5y-is-and-t/Xcode_7.0.dmg')
+        system('curl --output /tmp/xcode.dmg https://s3-us-west-1.amazonaws.com/a5y-is-and-t/Xcode_7.0.1.dmg')
         xcode_dmg = '/tmp/xcode.dmg'
       end
       command = Command.run("hdiutil attach -nobrowse '#{xcode_dmg}'")

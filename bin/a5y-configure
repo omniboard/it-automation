@@ -84,24 +84,16 @@ begin
     system 'xcodebuild &> /dev/null'
     case $?.exitstatus
     when 1
-      if options[:xcode]
-        xcode_dmg = options[:xcode]
-      else
-        puts 'Downloading Xcode to install...'.colorize(:blue)
-        system('curl --output /tmp/xcode.dmg https://s3-us-west-1.amazonaws.com/a5y-is-and-t/Xcode_7.0.1.dmg')
-        xcode_dmg = '/tmp/xcode.dmg'
-      end
-      command = Command.run("hdiutil attach -nobrowse '#{xcode_dmg}'")
-      fail "Can't mount Xcode dmg at #{xcode_dmg}." unless command.status == 0
-      line = command.stdout.lines.last
-      device = line.split(' ').first.strip
-      dir = line.split(' ').last.strip
-      puts 'Copying Xcode.app to /Applications...'.colorize(:blue)
-      command = Command.run("cp -R '#{dir}/Xcode.app' /Applications")
-      fail 'Error trying to install Xcode.app in /Applications' unless command.status == 0
-      Command.run "hdiutil unmount #{device}"
-      FileUtils.rm xcode_dmg if xcode_dmg == '/tmp/xcode.dmg'
-      install_file 'com.apple.dt.Xcode.plist', '/Library/Preferences/com.apple.dt.Xcode.plist'
+      puts "We don't want to install Xcode using the Mac App Store, as it becomes a problem"
+      puts "for the user when they're unable to install updates without signing in with the"
+      puts "same Apple ID that installed it."
+      puts ""
+      puts "So download the current version of Xcode by signing in to developer.apple.com"
+      puts "and downloading it:"
+      puts "http://stackoverflow.com/questions/10335747/how-to-download-xcode-4-5-6-7-and-get-the-dmg-file"
+      puts ""
+      puts "Then copy Xcode.app to /Applications"
+      fail 'Please install Xcode.app in /Applications'
     when 69
       install_file 'com.apple.dt.Xcode.plist', '/Library/Preferences/com.apple.dt.Xcode.plist'
     end

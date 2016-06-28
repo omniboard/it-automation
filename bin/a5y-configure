@@ -204,8 +204,8 @@ begin
   if options[:groups].include? :developer
     puts "### Starting installation of developer apps... ###"
     run_cmd 'sudo pmset -a sleep 0', 'Disabling Sleep'
-    install_brew [:node, :phantomjs, 'homebrew/versions/postgresql92', :redis, 'ruby-build', :nvm, :pow, :rbenv]
-    install_cask ['1password', :alfred, :anvil, :dash, :tower]
+    install_brew [:node, :phantomjs, :postgresql, :redis, 'ruby-build', :nvm, :pow, :rbenv]
+    install_cask ['1password', :alfred, :anvil, :tower]
     # Setup cql
     run_cmd 'pip install cql &> /dev/null', 'Installing cql python module via pip...'
     run_cmd 'pip3 install cql &> /dev/null', 'Installing cql python3 module via pip3...'

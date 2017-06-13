@@ -38,7 +38,7 @@ OptionParser.new do |opts|
 end.parse!
 
 # Open settings database
-db = Daybreak::DB.new File.expand_path('~/.ahalogy.db'), default: ''
+db = Daybreak::DB.new File.expand_path('~/.it-automation.db'), default: ''
 # Verify values are already in the database or ask for them
 unless options[:skip_github]
   if options[:ask] or db[:github_username].empty?
@@ -131,12 +131,12 @@ begin
           upload_key = false if entry[:key] == local_key
         end
         if upload_key
-          github.users.keys.create title: 'uploaded via ahalogy-automation', key: local_key
+          github.users.keys.create title: 'Created by it-automation', key: local_key
         else
           puts 'SSH Key already installed on GitHub...skipped.'.colorize(:green)
         end
       end
-      run_cmd 'sudo srm -f -m ~/.ahalogy.db', 'Sanitizing database...'
+      run_cmd 'sudo srm -f -m ~/.it-automation.db', 'Sanitizing database...'
     end
 
     # Install homebrew

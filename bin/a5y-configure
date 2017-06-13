@@ -84,16 +84,8 @@ begin
     system 'xcodebuild &> /dev/null'
     case $?.exitstatus
     when 1
-      puts "We don't want to install Xcode using the Mac App Store, as it becomes a problem"
-      puts "for the user when they're unable to install updates without signing in with the"
-      puts "same Apple ID that installed it."
-      puts ""
-      puts "So download the current version of Xcode by signing in to developer.apple.com"
-      puts "and downloading it:"
-      puts "http://stackoverflow.com/questions/10335747/how-to-download-xcode-4-5-6-7-and-get-the-dmg-file"
-      puts ""
-      puts "Then copy Xcode.app to /Applications"
-      fail 'Please install Xcode.app in /Applications'
+      command = Command.run("xcode-select --install")
+      fail "Xcode installer failed." unless command.status == 0
     when 69
       install_file 'com.apple.dt.Xcode.plist', '/Library/Preferences/com.apple.dt.Xcode.plist'
     end

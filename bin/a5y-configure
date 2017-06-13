@@ -35,7 +35,7 @@ OptionParser.new do |opts|
   opts.on('-a', '--ask', 'Ask to confirm settings stored in settings database.') { options[:ask] = true }
   opts.on('--xcode FILE', 'Use local xcode dmg file for install.') { |file| options[:xcode] = file }
   opts.on('-d', '--debug', 'Enable debug messaging.') { options[:verbose] = true }
-  opts.on('-b', '--battery', 'Enable battery mode.') { options[:battery_mode] = true }
+  opts.on('-b', '--no-sleep', 'Disable sleep, even on battery. (On by default)') { options[:disable_sleep] = true }
 end.parse!
 
 # Open settings database
@@ -58,7 +58,7 @@ begin
   if options[:groups].include? :default
     
     # Enable Battery Mode
-    if options[:battery_mode]
+    if options[:disable_sleep]
       # Turns off Sleep and DisplaySleep
       run_cmd 'sudo pmset -a displaysleep 0 disksleep 0 sleep 0', 'Disabling sleep.'
     end
@@ -188,7 +188,6 @@ begin
 
   if options[:groups].include? :developer
     puts "### Starting installation of developer apps... ###"
-    run_cmd 'sudo pmset -a sleep 0', 'Disabling Sleep'
     install_brew [:node, :phantomjs, :postgresql, :redis, 'ruby-build', :nvm, :pow, :rbenv]
     install_cask ['1password', :alfred, :anvil, :dash, :tower]
     # Setup cql
@@ -219,16 +218,13 @@ begin
   end # options[:groups] = developer
 
   if options[:groups].include? :designer
-    run_cmd 'sudo pmset -a sleep 0', 'Disabling Sleep'
     install_cask ['adobe-creative-cloud', 'sketch-tool', :invisionsync, :tower, :anvil]
     notes << "If this is the first time running a5y-configure, you will need to manually install Adobe Creative Cloud by running:\n     open '/opt/homebrew-cask/Caskroom/adobe-creative-cloud/latest/Creative Cloud Installer.app'"
   end
   
   # Sets power settings to default profiles
-  if options[:battery_mode]
-    unless options[:groups].include? :developer
-      run_cmd 'pmset -c 2 -b 1 -u 1', 'Restoring sleep defaults.'
-    end
+  if options[:disable_sleep]
+    run_cmd 'pmset -c 2 -b 1 -u 1', 'Restoring sleep defaults.'
   end
 
 rescue

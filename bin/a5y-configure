@@ -14,7 +14,7 @@ user_uid = ENV['SUDO_UID']
 user_gid = ENV['SUDO_GID']
 fail 'Environment variables for SUDO_UID and SUDO_GID are invalid' if user_uid.nil? or user_gid.nil?
 
-groups = [:developer, :pinner, :cs, :designer]
+groups = [:developer, :designer]
 options = {
   groups: [:default],
   verbose: false,
@@ -217,15 +217,6 @@ begin
     # Set the default terminal theme to something more bareable.
     #run_cmd 'defaults write com.apple.Terminal "Default Window Settings" "Pro"'
   end # options[:groups] = developer
-
-  if options[:groups].include? :pinner
-    install_cask ['adobe-creative-cloud', 'microsoft-office', :joinme]
-    notes << "If this is the first time running a5y-configure, you will need to manually install Adobe Creative Cloud by running:\n     open '/opt/homebrew-cask/Caskroom/adobe-creative-cloud/latest/Creative Cloud Installer.app'"
-  end
-
-  if options[:groups].include? :cs
-    install_cask 'microsoft-office'
-  end
 
   if options[:groups].include? :designer
     run_cmd 'sudo pmset -a sleep 0', 'Disabling Sleep'

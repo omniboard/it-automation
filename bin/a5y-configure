@@ -14,7 +14,7 @@ user_uid = ENV['SUDO_UID']
 user_gid = ENV['SUDO_GID']
 fail 'Environment variables for SUDO_UID and SUDO_GID are invalid' if user_uid.nil? or user_gid.nil?
 
-groups = [:developer, :pinner, :cs, :designer, :'systems-manager']
+groups = [:developer, :pinner, :cs, :designer]
 options = {
   groups: [:default],
   verbose: false,
@@ -125,13 +125,6 @@ begin
       else
         run_cmd 'git clone https://github.com/sstephenson/rbenv-gem-rehash.git /usr/local/var/rbenv/plugins/rbenv-gem-rehash', 'Installing rbenv-gem-rehash...'
       end
-    end
-
-    if options[:groups].include? :'systems-manager'
-      puts 'Installing Ahalogy-Systems-Manager.pkg...'.colorize(:blue)
-      system('curl --output /tmp/ahalogy-systems-manager.pkg https://s3-us-west-1.amazonaws.com/a5y-is-and-t/Ahalogy-Systems-Manager.pkg')
-      system('installer -pkg /tmp/ahalogy-systems-manager.pkg -target /')
-      FileUtils.rm '/tmp/ahalogy-systems-manager.pkg'
     end
 
     # Dropping privileges to the sudo_user

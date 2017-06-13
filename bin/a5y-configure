@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'ahalogy/install-helper'
+require 'it-automation/install-helper'
 require 'colorize'
 require 'command'
 require 'daybreak'

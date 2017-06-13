@@ -33,7 +33,6 @@ OptionParser.new do |opts|
   opts.on('--skip-filevault', 'Skip configuration of FileVault.') { options[:skip_filevault] = true }
   opts.on('--skip-github', 'Skip configuration of GitHub sshkey') { options[:skip_github] = true }
   opts.on('-a', '--ask', 'Ask to confirm settings stored in settings database.') { options[:ask] = true }
-  opts.on('--xcode FILE', 'Use local xcode dmg file for install.') { |file| options[:xcode] = file }
   opts.on('-d', '--debug', 'Enable debug messaging.') { options[:verbose] = true }
   opts.on('-b', '--no-sleep', 'Disable sleep, even on battery. (On by default)') { options[:disable_sleep] = true }
 end.parse!
@@ -67,7 +66,7 @@ begin
     if $? != 0
       run_cmd 'xcode-select --install', 'Installing Xcode CLI tools.'
     else
-      puts 'Xcode CLI tools is already installed...skipped.'.colorize(:green)
+      puts 'Xcode CLI tools was previously installed.'.colorize(:green)
     end
 
     # Enable FileVault
@@ -78,16 +77,6 @@ begin
       rescue
         puts 'FileVault already enabled...skipped'.colorize(:green)
       end
-    end
-
-    # Install full xcode
-    system 'xcodebuild &> /dev/null'
-    case $?.exitstatus
-    when 1
-      command = Command.run("xcode-select --install")
-      fail "Xcode installer failed." unless command.status == 0
-    when 69
-      install_file 'com.apple.dt.Xcode.plist', '/Library/Preferences/com.apple.dt.Xcode.plist'
     end
 
     # Enable system firewall
